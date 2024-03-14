@@ -1,0 +1,19 @@
+name: 'Update Confluence Github Action'
+description:
+  'Creates and updates Confluence Cloud pages with data from a repository.'
+author: Karsten Silkenbäumer
+
+# Define your inputs here.
+inputs:
+  config:
+    description:
+      Configuration file configuring confluence cloud and data sources
+    required: true
+    default: config.yaml
+  token:
+    description: Confluence API token
+    required: true
+
+runs:
+  using: node20
+  main: dist/index.js
