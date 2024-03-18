@@ -48,6 +48,9 @@ describe('config', () => {
   beforeEach(() => {
     fs.__setMockContent(undefined)
   })
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
 
   describe('.load()', () => {
     it("throws a 'no such file exception' when file does not exist", () => {
@@ -114,9 +117,23 @@ describe('config', () => {
   })
 
   describe('.pagesToBeDeployed()', () => {
+    beforeEach(() => {
+      config.data['full_deploy'] = []
+    })
+
     it('returns empty array when no page has changed since last version', () => {
       jest.spyOn(config, 'changedFilesSinceLastDeployment').mockImplementation(() => [])
       expect(config.pagesToBeDeployed()).toEqual([])
+    })
+
+    it('returns all pages when a full deployment is required', () => {
+      let page1 = {file: 'path/to/page1'}
+      let page2 = {file: 'path/to/page2'}
+      let page3 = {file: 'path/to/page3'}
+      config.data['pages'] = [page1, page2, page3]
+
+      jest.spyOn(config, 'needsFullDeployment').mockImplementation(() => true)
+      expect(config.pagesToBeDeployed()).toEqual([page1, page2, page3])
     })
 
     it('returns list of pages with changes', () => {
@@ -131,6 +148,34 @@ describe('config', () => {
 
       expect(config.pagesToBeDeployed()).toEqual([page1, page2])
     })
+  })
 
+  describe('.needsFullDeployment', () => {
+    beforeEach(() => {
+      config.data['full_deploy'] = [
+        'simpleFileTriggering',
+        'triggering/.+'
+      ]
+    })
+    it('returns false if no file has been changed', () => {
+      expect(config.needsFullDeployment([])).toBeFalsy()
+    })
+
+    it('returns false if no regular expressions for full_deploy are given', () => {
+      config.data["full_deploy"] = []
+      expect(config.needsFullDeployment(['file1', 'simpleFile', 'simpleFileTriggering'])).toBeFalsy()
+    })
+
+    it('returns false if no changed file matches any regular expression', () => {
+      expect(config.needsFullDeployment(['file1', 'simpleFile'])).toBeFalsy()
+    })
+
+    it('returns true if a simple file matches', () => {
+      expect(config.needsFullDeployment(['file1', 'simpleFileTriggering'])).toBeTruthy()
+    })
+
+    it('returns true if a regex expression matches', () => {
+      expect(config.needsFullDeployment(['triggering/any'])).toBeTruthy()
+    })
   })
 })

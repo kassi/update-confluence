@@ -11,9 +11,12 @@ async function run() {
     const token = core.getInput('token', {required: true})
 
     let config = config.load(configFile)
-    // determine changed pages
-    // loop over changed pages
-    // call upload to confluence for each page
+    let pages = config.pagesToBeDeployed()
+
+    pages.forEach((page) => {
+      // render
+      // upload
+    })
 
     changed_pages(config).forEach(page => {
       handle_page(page)

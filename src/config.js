@@ -1,10 +1,12 @@
 const fs = require('fs')
 const yaml = require('js-yaml')
 const { execSync } = require('child_process');
+const {log} = require('console');
 
 const configDefaults = {
   version_prefix: 'v',
-  add_automation_hint: false
+  add_automation_hint: false,
+  full_deploy: []
 }
 
 /**
@@ -51,8 +53,11 @@ async function currentVersion(prefix) {
  * @returns {Array<Object>} List of page objects.
  */
 function pagesToBeDeployed() {
+  let changedFiles = config.changedFilesSinceLastDeployment()
+  let needsFullDeployment = config.needsFullDeployment(changedFiles)
+
   return config.data['pages'].filter(page => {
-    return config.changedFilesSinceLastDeployment().includes(page["file"])
+    return needsFullDeployment ? true : changedFiles.includes(page["file"])
   })
 }
 
@@ -74,6 +79,27 @@ async function changedFilesSinceLastDeployment() {
 }
 
 /**
+ *
+ * @param {Array<String>} changedFiles List of filenames that name changed files.
+ * @returns {Boolean} True if any of the changed files matches any of the full_deploy regular expressions.
+ */
+function needsFullDeployment(changedFiles) {
+  let result = false
+  changedFiles.every(file => {
+    return config.data["full_deploy"].every(regexString => {
+      const regex = new RegExp(`^${regexString}$`)
+      if (file.match(regex)) {
+        result = true
+        return false
+      }
+      return true
+    })
+  })
+
+  return result
+}
+
+/**
  * Manage the configuration.
  */
 let config = {
@@ -82,7 +108,8 @@ let config = {
   load: load,
   currentVersion: currentVersion,
   pagesToBeDeployed: pagesToBeDeployed,
-  changedFilesSinceLastDeployment: changedFilesSinceLastDeployment
+  changedFilesSinceLastDeployment: changedFilesSinceLastDeployment,
+  needsFullDeployment: needsFullDeployment
 };
 
 module.exports = config
