@@ -1,5 +1,6 @@
 const core = require('@actions/core')
 const config = require('./config')
+const {renderContent} = require("./render")
 
 /**
  * The main function for the action.
@@ -14,6 +15,13 @@ async function run() {
     let pages = config.pagesToBeDeployed()
 
     pages.forEach((page) => {
+      content = renderContent(page)
+      // if (confluence.pageExists(page)) {
+      //   confluence.updatePage(page)
+      // } else {
+      //   const parent
+      //   confluence.createPage(page)
+      // }
       // render
       // upload
     })

@@ -41,12 +41,16 @@ function mockConfigYaml(excludes) {
     const regex = new RegExp(`^${ex}:.*$`, "mg")
     yaml = yaml.replaceAll(regex, "")
   });
-  require('fs').__setMockContent(yaml)
+  fs.__setFileContents({'config.yaml': yaml})
 }
 
 describe('config', () => {
+  const fileContents = {
+    '/does/not/exists': undefined,
+  }
+
   beforeEach(() => {
-    fs.__setMockContent(undefined)
+    fs.__setFileContents(fileContents)
   })
   afterEach(() => {
     jest.restoreAllMocks();
@@ -54,7 +58,7 @@ describe('config', () => {
 
   describe('.load()', () => {
     it("throws a 'no such file exception' when file does not exist", () => {
-      expect(() => {config.load('mock.file')}).toThrow("ENOENT: no such file or directory, open 'mock.file'")
+      expect(() => {config.load('/does/not/exist')}).toThrow("ENOENT: no such file or directory, open '/does/not/exist'")
     })
 
     let mandatoryAttributes = [
@@ -68,13 +72,13 @@ describe('config', () => {
       it(`throws an invalid data exception when '${attribute}' is missing`, () => {
         mockConfigYaml([attribute])
 
-        expect(() => {config.load('name')}).toThrow(`Mandatory attribute '${attribute}' missing`)
+        expect(() => {config.load('config.yaml')}).toThrow(`Mandatory attribute '${attribute}' missing`)
       })
     })
 
     it('returns data when all attributes are present', () => {
       mockConfigYaml([])
-      expect(config.load('mocked')).toMatchObject({})
+      expect(config.load('config.yaml')).toMatchObject({})
       // expect(config.data).toMatchObject({})
     })
   })
