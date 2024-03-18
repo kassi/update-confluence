@@ -1,5 +1,5 @@
 const core = require('@actions/core')
-const { loadConfig } = require('./config')
+const config = require('./config')
 
 /**
  * The main function for the action.
@@ -10,7 +10,14 @@ async function run() {
     const configFile = core.getInput('config', {required: true})
     const token = core.getInput('token', {required: true})
 
-    let config = loadConfig(configFile)
+    let config = config.load(configFile)
+    // determine changed pages
+    // loop over changed pages
+    // call upload to confluence for each page
+
+    changed_pages(config).forEach(page => {
+      handle_page(page)
+    });
   } catch (error) {
     // Fail the workflow run if an error occurs
     core.setFailed(error.message)

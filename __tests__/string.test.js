@@ -1,7 +1,7 @@
 require('./string')
 
-describe('string.js', () => {
-  describe('strip', () => {
+describe('string', () => {
+  describe('.strip()', () => {
     it('returns same string with nothing to split', () => {
       const input = 'Just a simple string'
       expect(input.strip()).toEqual(input)
